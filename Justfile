@@ -4,8 +4,3 @@ default:
 static: 
   uv run manage.py collectstatic
 
-css: 
-  bun run build-css-once
-
-css-watch: 
-  bun run build-css

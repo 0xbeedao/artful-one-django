@@ -1,5 +1,5 @@
 {
-  description = "A Django application with Tailwind CSS.";
+  description = "A Django application.";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -25,8 +25,6 @@
         devShell = pkgs.mkShell {
           buildInputs = [
             pythonEnv
-            pkgs.nodejs-20_x
-            pkgs.bun
             pkgs.just
           ];
         };

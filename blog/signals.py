@@ -2,7 +2,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save, m2m_changed
 from django.db.models import Value, TextField
 from django.contrib.postgres.search import SearchVector
-from django.db import transaction
+from django.db import transaction, connection
 from blog.models import BaseModel, Tag
 import operator
 from functools import reduce
@@ -31,6 +31,8 @@ def make_updater(instance):
     pk = instance.pk
 
     def on_commit():
+        if connection.vendor != "postgresql":
+            return
         search_vectors = []
         for weight, text in list(components.items()):
             search_vectors.append(

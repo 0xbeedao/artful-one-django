@@ -1,9 +1,0 @@
-{
-  "scripts": {
-    "build-css": "bunx tailwindcss -i ./static/css/tailwind.css -o ./staticfiles/css/site.css --watch",
-    "build-css-once": "bunx tailwindcss -i ./static/css/tailwind.css -o ./staticfiles/css/site.css"
-  },
-  "devDependencies": {
-    "tailwindcss": "^3.4.0"
-  }
-}

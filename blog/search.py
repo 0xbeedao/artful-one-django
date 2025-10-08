@@ -2,7 +2,7 @@ import time
 import json
 import re
 import calendar
-from django.db import models
+from django.db import models, connection
 from django.db.models.functions import TruncYear, TruncMonth
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -69,7 +69,7 @@ def search(request, q=None, return_context=False):
 
     query = None
     rank_annotation = None
-    if search_q:
+    if search_q and connection.vendor == "postgresql":
         query = SearchQuery(search_q, search_type="websearch")
         rank_annotation = SearchRank(models.F("search_document"), query)
 
@@ -84,7 +84,7 @@ def search(request, q=None, return_context=False):
     selected_month = request.GET.get("month", "")
 
     values = ["pk", "type", "created"]
-    if search_q:
+    if search_q and query:
         values.append("rank")
 
     def make_queryset(klass, type_name):
@@ -103,7 +103,7 @@ def search(request, q=None, return_context=False):
             qs = qs.filter(created__gte=from_date)
         if to_date:
             qs = qs.filter(created__lt=to_date)
-        if search_q:
+        if search_q and query:
             qs = qs.filter(search_document=query)
             qs = qs.annotate(rank=rank_annotation)
         for tag in selected_tags:
@@ -116,7 +116,7 @@ def search(request, q=None, return_context=False):
     qs = Entry.objects.annotate(
         type=models.Value("empty", output_field=models.CharField())
     )
-    if search_q:
+    if search_q and query:
         qs = qs.annotate(rank=rank_annotation)
     qs = qs.values(*values).none()
 
@@ -170,13 +170,13 @@ def search(request, q=None, return_context=False):
         sort = None
 
     if sort is None:
-        if search_q:
+        if search_q and query:
             sort = "relevance"
         else:
             sort = "date"
 
     # can't sort by relevance if there's no search_q
-    if sort == "relevance" and not search_q:
+    if sort == "relevance" and not (search_q and query):
         sort = "date"
 
     db_sort = {"relevance": "-rank", "date": "-created"}[sort]

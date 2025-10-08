@@ -1,0 +1,9 @@
+{
+    "editor.formatOnSave": false,
+    "[justfile]": {
+        "editor.formatOnSave": false
+    },
+    "[Justfile]": {
+        "editor.formatOnSave": false
+    }
+}

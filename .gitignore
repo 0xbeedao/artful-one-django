@@ -14,7 +14,6 @@ node_modules/
 # misc
 .history/
 .env
-artful-one.db
 .python-version
 staticfiles/
 uv.lock

@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Sum, Subquery, OuterRef, IntegerField
 from django.utils.dates import MONTHS_3
+from django.utils import timezone
 from django.db.models.functions import Coalesce
 from django.utils.safestring import mark_safe
 from django.contrib.contenttypes.models import ContentType
@@ -9,10 +10,10 @@ from django.db.models import JSONField, Count
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex
 from django.utils.html import escape, strip_tags
+from pictures.models import PictureField
 from collections import Counter
 import re
 import arrow
-import datetime
 from markdown import markdown
 from xml.etree import ElementTree
 
@@ -163,7 +164,7 @@ class PreviousTagName(models.Model):
 
 
 class Series(models.Model):
-    created = models.DateTimeField(default=datetime.datetime.utcnow)
+    created = models.DateTimeField(default=timezone.now)
     slug = models.SlugField(max_length=64, unique=True)
     title = models.CharField(max_length=255)
     summary = models.TextField()
@@ -188,7 +189,7 @@ class Series(models.Model):
 
 
 class BaseModel(models.Model):
-    created = models.DateTimeField(default=datetime.datetime.utcnow)
+    created = models.DateTimeField(default=timezone.now)
     tags = models.ManyToManyField(Tag, blank=True)
     slug = models.SlugField(max_length=64)
     metadata = JSONField(blank=True, default=dict)
@@ -296,7 +297,7 @@ class Entry(BaseModel):
 
 
 class LiveUpdate(models.Model):
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(default=timezone.now)
     content = models.TextField()
     entry = models.ForeignKey(Entry, related_name="updates", on_delete=models.CASCADE)
 
@@ -419,36 +420,36 @@ class Note(BaseModel):
         verbose_name_plural = "Notes"
 
 
+class PhotoTag(models.Model):
+    slug = models.SlugField(unique=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Photo(models.Model):
-    flickr_id = models.CharField(max_length=32)
-    server = models.CharField(max_length=8)
-    secret = models.CharField(max_length=32)
+    created = models.DateTimeField(default=timezone.now)
     title = models.CharField(max_length=255, blank=True, null=True)
-    longitude = models.CharField(max_length=32, blank=True, null=True)
-    latitude = models.CharField(max_length=32, blank=True, null=True)
-    created = models.DateTimeField()
+    image = PictureField(
+        upload_to="photos",
+        width_field="width",
+        height_field="height",
+        aspect_ratios=[None, "1/1", "3/2", "16/9"],
+        blank=True,
+        null=True,
+    )
+    width = models.PositiveIntegerField(default=0)
+    height = models.PositiveIntegerField(default=0)
+    photo_tags = models.ManyToManyField(PhotoTag, blank=True)
 
     def __str__(self):
         return self.title
 
-    def photopage(self):
-        return "http://www.flickr.com/photo.gne?id=%s" % self.flickr_id
-
-    def url_s(self):
-        return "http://static.flickr.com/%s/%s_%s_s.jpg" % (
-            self.server,
-            self.flickr_id,
-            self.secret,
-        )
-
-    def view_thumb(self):
-        return '<a href="%s"><img src="%s" width="75" height="75" /></a>' % (
-            self.photopage(),
-            self.url_s(),
-        )
-
 
 class Photoset(models.Model):
+    created = models.DateTimeField(default=timezone.now)
     flickr_id = models.CharField(max_length=32)
     title = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField()
@@ -460,18 +461,6 @@ class Photoset(models.Model):
 
     def __str__(self):
         return self.title
-
-    def get_absolute_url(self):
-        return "http://www.flickr.com/photos/simon/sets/%s/" % self.flickr_id
-
-    def view_thumb(self):
-        return '<a href="%s"><img src="%s" width="75" height="75" /></a>' % (
-            self.primary.photopage(),
-            self.primary.url_s(),
-        )
-
-    def has_map(self):
-        return self.photos.filter(longitude__isnull=False).count() > 0
 
 
 BAD_WORDS = (
@@ -505,7 +494,7 @@ class Comment(models.Model):
     item = GenericForeignKey()
     # The comment
     body = models.TextField()
-    created = models.DateTimeField()
+    created = models.DateTimeField(default=timezone.now)
     # Author information
     name = models.CharField(max_length=50)
     url = models.URLField(max_length=255, blank=True, null=True)

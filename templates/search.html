@@ -6,11 +6,17 @@
 
 {% block item_content %}
 {% load blog_tags %}
-<h2>{{ title }}</h2>
+<h2 class="ui header">{{ title }}</h2>
 
-<form action="{{ request.path }}" method="GET">
-    <input type="search" class="search-input" name="q" value="{{ q }}" style="width: 80%" autocomplete="off">
-    <input type="submit" class="search-submit" value="Search">
+<form class="ui form" action="{{ request.path }}" method="GET">
+    <div class="fields">
+        <div class="fourteen wide field">
+            <input type="search" class="search-input" name="q" value="{{ q }}" placeholder="Search..." autocomplete="off">
+        </div>
+        <div class="two wide field">
+            <button class="ui primary button" type="submit">Search</button>
+        </div>
+    </div>
     {% if selected %}
         {% for pair in selected.items %}
             {% if pair.0 == 'tags' %}
@@ -24,28 +30,44 @@
     {% endif %}
 </form>
 
-<p class="search-selections">
-    {% if selected %}<span class="filters">
-        Filters:
-        {% if selected.type %}
-            <a class="selected-tag" href="{% remove_qsarg "type" selected.type %}">Type: {{ selected.type }} <strong>&#x00D7;</strong></a>
-        {% endif %}
-        {% if selected.year %}
-            <a class="selected-tag" href="{% remove_qsarg "year" selected.year %}">Year: {{ selected.year }} <strong>&#x00D7;</strong></a>
-        {% endif %}
-        {% if selected.month %}
-            <a class="selected-tag" href="{% remove_qsarg "month" selected.month %}">Month: {{ selected.month_name }} <strong>&#x00D7;</strong></a>
-        {% endif %}
-        {% for tag in selected.tags %}
-            <a class="selected-tag" href="{% remove_qsarg "tag" tag %}">{{ tag }} <strong>&#x00D7;</strong></a>
-        {% endfor %}
-    </span>{% endif %}
-    {% if results %}
-        Sorted by <strong>{{ sort }}</strong>{% if q %} &middot; {% endif %}
-        {% if sort == "date" and q %}<a href="{% replace_qsarg "sort" "relevance" %}">relevance</a>{% endif %}
-        {% if sort == "relevance" %}<a href="{% replace_qsarg "sort" "date" %}">date</a>{% endif %}
+<div class="ui segment search-selections">
+    {% if selected %}
+        <div class="ui labels">
+            <div class="ui label">Filters:</div>
+            {% if selected.type %}
+                <a class="ui label" href="{% remove_qsarg "type" selected.type %}">
+                    Type: {{ selected.type }}
+                    <i class="delete icon"></i>
+                </a>
+            {% endif %}
+            {% if selected.year %}
+                <a class="ui label" href="{% remove_qsarg "year" selected.year %}">
+                    Year: {{ selected.year }}
+                    <i class="delete icon"></i>
+                </a>
+            {% endif %}
+            {% if selected.month %}
+                <a class="ui label" href="{% remove_qsarg "month" selected.month %}">
+                    Month: {{ selected.month_name }}
+                    <i class="delete icon"></i>
+                </a>
+            {% endif %}
+            {% for tag in selected.tags %}
+                <a class="ui label" href="{% remove_qsarg "tag" tag %}">
+                    {{ tag }}
+                    <i class="delete icon"></i>
+                </a>
+            {% endfor %}
+        </div>
     {% endif %}
-</p>
+    {% if results %}
+        <div style="margin-top: 1em;">
+            Sorted by <strong>{{ sort }}</strong>{% if q %} &middot; {% endif %}
+            {% if sort == "date" and q %}<a href="{% replace_qsarg "sort" "relevance" %}">relevance</a>{% endif %}
+            {% if sort == "relevance" %}<a href="{% replace_qsarg "sort" "date" %}">date</a>{% endif %}
+        </div>
+    {% endif %}
+</div>
 
 <div id="autocomplete-tags" aria-live="polite"></div>
 
@@ -57,48 +79,70 @@
     {% endif %}
 {% else %}
     {% if selected or q %}
-        <p><strong>No results found</strong></p>
-        {% if suggestion and num_corrected_results %}
-            <p style="margin: 1em 0">Suggestion: <a href="/search/?q={{ suggestion }}">{{ suggestion }}</a> ({{ num_corrected_results }} result{{ num_corrected_results|pluralize }})</p>
-        {% endif %}
+        <div class="ui warning message">
+            <div class="header">No results found</div>
+            {% if suggestion and num_corrected_results %}
+                <p>Suggestion: <a href="/search/?q={{ suggestion }}">{{ suggestion }}</a> ({{ num_corrected_results }} result{{ num_corrected_results|pluralize }})</p>
+            {% endif %}
+        </div>
     {% endif %}
 {% endif %}
 
 {% endblock %}
 
 {% block secondary %}
-<div class="metabox">
+<div class="ui segments metabox">
     {% if type_counts %}
-        <h3 id="facet-types">Types</h3>
-        <ul>
-            {% for t in type_counts %}
-                <li><a href="{% add_qsarg "type" t.type %}">{{ t.type }}</a> {{ t.n|intcomma }}</a></li>
-            {% endfor %}
-        </ul>
+        <div class="ui segment">
+            <h3 class="ui header" id="facet-types">Types</h3>
+            <div class="ui relaxed list">
+                {% for t in type_counts %}
+                    <div class="item">
+                        <a href="{% add_qsarg "type" t.type %}">{{ t.type }}</a>
+                        <span class="ui label">{{ t.n|intcomma }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
     {% endif %}
     {% if year_counts %}
-        <h3 id="facet-years">Years</h3>
-        <ul>
-            {% for t in year_counts %}
-                <li><a href="{% add_qsarg "year" t.year|date:"Y" %}">{{ t.year|date:"Y" }}</a> {{ t.n|intcomma }}</a></li>
-            {% endfor %}
-        </ul>
+        <div class="ui segment">
+            <h3 class="ui header" id="facet-years">Years</h3>
+            <div class="ui relaxed list">
+                {% for t in year_counts %}
+                    <div class="item">
+                        <a href="{% add_qsarg "year" t.year|date:"Y" %}">{{ t.year|date:"Y" }}</a>
+                        <span class="ui label">{{ t.n|intcomma }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
     {% endif %}
     {% if month_counts %}
-        <h3 id="facet-months">Months</h3>
-        <ul>
-            {% for t in month_counts %}
-                <li><a href="{% add_qsarg "month" t.month|date:"n" %}">{{ t.month|date:"F" }}</a> {{ t.n|intcomma }}</a></li>
-            {% endfor %}
-        </ul>
+        <div class="ui segment">
+            <h3 class="ui header" id="facet-months">Months</h3>
+            <div class="ui relaxed list">
+                {% for t in month_counts %}
+                    <div class="item">
+                        <a href="{% add_qsarg "month" t.month|date:"n" %}">{{ t.month|date:"F" }}</a>
+                        <span class="ui label">{{ t.n|intcomma }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
     {% endif %}
     {% if tag_counts %}
-        <h3 id="facet-tags">Tags</h3>
-        <ul>
-            {% for t in tag_counts %}
-                <li><a href="{% add_qsarg "tag" t.tag %}">{{ t.tag }}</a> {{ t.n|intcomma }}</a></li>
-            {% endfor %}
-        </ul>
+        <div class="ui segment">
+            <h3 class="ui header" id="facet-tags">Tags</h3>
+            <div class="ui relaxed list">
+                {% for t in tag_counts %}
+                    <div class="item">
+                        <a href="{% add_qsarg "tag" t.tag %}">{{ t.tag }}</a>
+                        <span class="ui label">{{ t.n|intcomma }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
     {% endif %}
 </div>
 <script>

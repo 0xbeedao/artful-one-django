@@ -18,9 +18,11 @@ import os
 import importlib.metadata
 import json
 from proxy.views import proxy_view
-
+from pictures.conf import get_settings
+import logging
 
 handler404 = "blog.views.custom_404"
+logger = logging.getLogger("blog")
 
 
 def wellknown_webfinger(request):
@@ -170,7 +172,13 @@ if settings.DEBUG:
     # In development, serve static files locally
     from django.conf.urls.static import static
 
+    logger.info(f"STATIC_URL: {settings.STATIC_URL}")
+    logger.info(f"STATIC_ROOT: {settings.STATIC_ROOT}")
+    logger.info(f"MEDIA_URL: {settings.MEDIA_URL}")
+    logger.info(f"MEDIA_ROOT: {settings.MEDIA_ROOT}")
+
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
     # Add debug toolbar if available
     try:
@@ -182,7 +190,13 @@ if settings.DEBUG:
     except ImportError:
         pass
 else:
+    logger.info("In production, redirecting to external static server")
     # In production, redirect to external static server
     urlpatterns += [
         re_path(r"^static/", static_redirect),
+    ]
+
+if get_settings().USE_PLACEHOLDERS:
+    urlpatterns += [
+        path("_pictures/", include("pictures.urls")),
     ]

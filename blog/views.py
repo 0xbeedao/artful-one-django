@@ -86,18 +86,6 @@ def archive_item(request, year, month, day, slug):
         except Http404:
             continue
 
-        # If item is entry posted before Dec 1 2006, add "previously hosted"
-        if content_type == "entry" and obj.created < datetime.datetime(
-            2006, 12, 1, 1, 1, 1, tzinfo=datetime.timezone.utc
-        ):
-            previously_hosted = (
-                "http://simon.incutio.com/archive/"
-                + obj.created.strftime("%Y/%m/%d/")
-                + obj.slug
-            )
-        else:
-            previously_hosted = None
-
         template = getattr(obj, "custom_template", None) or "{}.html".format(
             content_type
         )
@@ -123,7 +111,7 @@ def archive_item(request, year, month, day, slug):
                 content_type: obj,
                 "content_type": content_type,
                 "object_id": obj.id,
-                "previously_hosted": previously_hosted,
+                "previously_hosted": None,
                 "item": obj,
                 "recent_articles": Entry.objects.filter(is_draft=False)
                 .prefetch_related("tags")

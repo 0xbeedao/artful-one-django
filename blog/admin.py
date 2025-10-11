@@ -14,6 +14,9 @@ from .models import (
     Series,
     PreviousTagName,
     LiveUpdate,
+    Photo,
+    PhotoTag,
+    Photoset,
 )
 
 
@@ -105,6 +108,28 @@ class TagAdmin(admin.ModelAdmin):
             if old_obj.tag != obj.tag:
                 PreviousTagName.objects.create(tag=obj, previous_name=old_obj.tag)
         super().save_model(request, obj, form, change)
+
+
+@admin.register(Photo)
+class PhotoAdmin(admin.ModelAdmin):
+    list_display = ("title", "created")
+    list_filter = ("created",)
+    search_fields = ("title",)
+    autocomplete_fields = ("photo_tags",)
+
+
+@admin.register(PhotoTag)
+class PhotoTagAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug")
+    search_fields = ("name", "slug")
+
+
+@admin.register(Photoset)
+class PhotosetAdmin(admin.ModelAdmin):
+    list_display = ("title", "created")
+    list_filter = ("created",)
+    search_fields = ("title",)
+    autocomplete_fields = ("photos",)
 
 
 admin.site.register(

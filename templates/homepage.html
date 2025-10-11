@@ -19,7 +19,8 @@
 {% blog_mixed_list_with_dates items day_headers=1 %}
 {% endblock %}
 
-{% block secondary %}
+{% block secondary-disabled %}
+<div class="ui divider"></div>
 <h2 class="overband">Highlights</h2>
 <ul>
 {% for entry in entries %}

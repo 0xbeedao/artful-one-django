@@ -1,6 +1,10 @@
 import os
 import dj_database_url
 import djp
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -57,6 +61,7 @@ INSTALLED_APPS = [
     "blog",
     "monthly",
     "feedstats",
+    "pictures",
     "django_http_debug",
 ]
 
@@ -170,6 +175,10 @@ STATIC_URL = "/static/"
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "static/"),)
 
+# Media files (user-uploaded content)
+MEDIA_ROOT = os.path.join(BASE_DIR, "photos")
+MEDIA_URL = "/photos/"
+
 # Simplified static file serving.
 # https://warehouse.python.org/project/whitenoise/
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -190,5 +199,54 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
 }
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+    "loggers": {
+        "pictures": {
+            "handlers": ["console"],
+            "level": os.getenv("PICTURES_LOG_LEVEL", "DEBUG"),
+            "propagate": False,
+        },
+        "blog": {
+            "handlers": ["console"],
+            "level": os.getenv("BLOG_LOG_LEVEL", "DEBUG"),
+            "propagate": False,
+        },
+        "django": {
+            "handlers": ["console"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+            "propagate": False,
+        },
+    },
+}
+
+PICTURES = {
+    "BREAKPOINTS": {
+        "xs": 576,
+        "s": 768,
+        "m": 992,
+        "l": 1200,
+        "xl": 1400,
+    },
+    "GRID_COLUMNS": 12,
+    "CONTAINER_WIDTH": 1200,
+    "FILE_TYPES": ["AVIF"],
+    "PIXEL_DENSITIES": [1, 2],
+    "USE_PLACEHOLDERS": True,
+    "QUEUE_NAME": "pictures",
+    "PROCESSOR": "pictures.tasks.process_picture",
+}
+
 
 djp.settings(globals())

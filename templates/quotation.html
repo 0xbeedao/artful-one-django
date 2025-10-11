@@ -7,18 +7,18 @@
 
 {% load entry_tags %}
 {% block item_content %}
-<div class="quote">
+<div class="ui segment quote">
 {% include "_draft_warning.html" %}
-<blockquote{% if quotation.source_url %} cite="{{ quotation.source_url }}"{% endif %}>{{ quotation.body }}</blockquote>
+<blockquote class="ui quote"{% if quotation.source_url %} cite="{{ quotation.source_url }}"{% endif %}>{{ quotation.body }}</blockquote>
 <p class="cite">&mdash; {% if quotation.source_url %}<a href="{{ quotation.source_url }}">{{ quotation.source }}</a>{% else %}{{ quotation.source }}{% endif %}{% if quotation.context %}, <span class="context">{{ quotation.context_rendered }}</span>{% endif %}</p>
 </div>
 
-<div class="entryFooter">Posted <a href="/{{ quotation.created|date:"Y/M/j/" }}">{{ quotation.created|date:"jS F Y" }}</a> at {{ quotation.created|date:"f A"|lower }}</div>
+<div class="ui secondary segment entryFooter">Posted <a href="/{{ quotation.created|date:"Y/M/j/" }}">{{ quotation.created|date:"jS F Y" }}</a> at {{ quotation.created|date:"f A"|lower }}</div>
 <p class="edit-page-link" data-admin-url="{{ quotation.edit_url }}" style="display: none;"></p>
 {% endblock %}
 
 {% block secondary %}
-<div class="metabox">
+<div class="ui segment metabox">
 {% include "_tags.html" with obj=quotation %}
 </div> <!-- .metabox -->
 {% endblock %}

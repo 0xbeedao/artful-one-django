@@ -31,4 +31,6 @@ dependencies = [
     "django-hosts==6.0",
     "pyspellchecker==0.8.2",
     "django-debug-toolbar>=6.0.0",
+    "django-pictures>=1.5.3",
+    "python-dotenv>=1.0.0",
 ]

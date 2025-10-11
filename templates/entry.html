@@ -5,7 +5,6 @@
 {% block extrahead %}
 {{ block.super }}
 {{ entry.extra_head_html|default:""|safe }}
-<script async src="https://media.ethicalads.io/media/client/ethicalads.min.js"></script>
 {% endblock %}
 
 {% block card_title %}{{ entry.title|typography }}{% endblock %}
@@ -13,7 +12,7 @@
 
 {% block item_content %}
 <div data-permalink-context="{{ entry.get_absolute_url }}">
-<h2>{{ entry.title|typography }}</h2>
+<h2 class="ui header">{{ entry.title|typography }}</h2>
 <p class="mobile-date">{{ entry.created|date:"jS F Y" }}</p>
 
 {% include "_draft_warning.html" %}
@@ -26,40 +25,50 @@
 </div>
 {% endif %}
 </div>
-<div class="entryFooter">Posted <a href="/{{ entry.created|date:"Y/M/j/" }}">{{ entry.created|date:"jS F Y" }}</a> 
+<div class="ui secondary segment entryFooter">Posted <a href="/{{ entry.created|date:"Y/M/j/" }}">{{ entry.created|date:"jS F Y" }}</a> 
   at {{ entry.created|date:"f A"|lower }} &middot; 
-  Follow me on <a icon="twitter" href="https://twitter.com/bkroeze"><i class="icon twitter">&nbsp;Twitter</i></a></div>
+  Follow me on <a icon="twitter" href="https://twitter.com/bkroeze"><i class="twitter icon"></i>Twitter</a></div>
 <p class="edit-page-link" data-admin-url="{{ entry.edit_url }}" style="display: none;"></p>
 {% endblock %}
 
 {% block recent_articles_header %}More recent articles{% endblock %}
 
 {% block secondary %}
-<div class="metabox">
+<div class="ui segments metabox">
+<div class="ui segment">
 <p class="this-is">This is <strong>{{ entry.title|typography }}</strong> by Bruce Kroeze, posted on <a href="/{{ entry.created|date:"Y/M/j/" }}">{{ entry.created|date:"jS F Y" }}</a>.</p>
+</div>
 {% if entry.series %}{% with entry.series_info as series_info %}
-<div class="series-info">
-  <p>Part of series <strong><a href="/series/{{ entry.series.slug }}/">{{ entry.series.title }}</a></strong></p>
-  <ol start="{{ series_info.start }}">
+<div class="ui segment series-info">
+  <h4 class="ui header">Part of series <a href="/series/{{ entry.series.slug }}/">{{ entry.series.title }}</a></h4>
+  <div class="ui ordered list">
     {% for other in series_info.entries %}
       {% if other.pk == entry.pk %}
-        <li><strong>{{ other }}</strong></a> - {{ other.created }} </li>
+        <div class="item"><strong>{{ other }}</strong> - {{ other.created }}</div>
       {% else %}
-        <li><a href="{{ other.get_absolute_url }}">{{ other }}</a> - {{ other.created }} </li>
+        <div class="item"><a href="{{ other.get_absolute_url }}">{{ other }}</a> - {{ other.created }}</div>
       {% endif %}
     {% endfor %}
-    {% if series_info.has_next %}<li style="list-style-type: none;"><a href="/series/{{ entry.series.slug }}/">&#8230; more</a></li>{% endif %}
-  </ol>
+    {% if series_info.has_next %}<div class="item" style="list-style-type: none;"><a href="/series/{{ entry.series.slug }}/">&#8230; more</a></div>{% endif %}
+  </div>
 </div>
 {% endwith %}{% endif %}
+<div class="ui segment">
 {% include "_tags.html" with obj=entry %}
+</div>
 {% with entry.next_by_created as next_entry %}{% if next_entry %}
+<div class="ui segment">
 <p><strong>Next:</strong> <a href="{{ next_entry.get_absolute_url }}">{{ next_entry.title }}</a></p>
+</div>
 {% endif %}{% endwith %}
 {% with entry.previous_by_created as previous_entry %}{% if previous_entry %}
+<div class="ui segment">
 <p><strong>Previous:</strong> <a href="{{ previous_entry.get_absolute_url }}">{{ previous_entry.title }}</a></p>
+</div>
 {% endif %}{% endwith %}
+<div class="ui segment">
 <div data-ea-publisher="artfulone" data-ea-type="image"></div>
+</div>
 </div>
 
 {% if entry.tweet_html %}{{ entry.tweet_html|safe }}{% endif %}

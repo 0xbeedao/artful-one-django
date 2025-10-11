@@ -1,4 +1,4 @@
-{% extends "smallhead.html" %}
+{% extends "site_detail_page.html" %}
 
 {% block extrahead %}
 <meta name="twitter:card" content="summary">{% if item.card_image %}
@@ -23,20 +23,22 @@
 {% block primary %}
 <div class="entry entryPage">
   {% if show_comment_warning %}
-  <p id="commentwarning">Your comment is being held in a moderation queue. (<a
-      href="{{ item.get_absolute_url }}">clear</a>)</p>
+  <div class="ui warning message">
+    <p>Your comment is being held in a moderation queue. (<a href="{{ item.get_absolute_url }}">clear</a>)</p>
+  </div>
   {% endif %}
   {% block item_content %}
   {% endblock %}
 </div>
 {% if recent_articles %}
 <div class="recent-articles">
-  <h2>{% block recent_articles_header %}Recent articles{% endblock %}</h2>
-  <ul class="bullets">
+  <div class="ui divider"></div>
+  <h2 class="ui header">{% block recent_articles_header %}Recent articles{% endblock %}</h2>
+  <div class="ui bulleted list">
     {% for article in recent_articles %}{% if article != item %}
-    <li><a href="{{ article.get_absolute_url }}">{{ article }}</a> - {{ article.created|date:"jS F Y" }}</li>
+    <div class="item"><a href="{{ article.get_absolute_url }}">{{ article }}</a> - {{ article.created|date:"jS F Y" }}</div>
     {% endif %}{% endfor %}
-  </ul>
+  </div>
 </div>
 {% endif %}
 {% endblock %}
@@ -44,35 +46,53 @@
 {% block thirdsection %}
 
 {% if comments %}
-<h2 class="band">{{ comments|length }} comment{{ comments|length|pluralize }}</h2>
+<h2 class="ui dividing header">{{ comments|length }} comment{{ comments|length|pluralize }}</h2>
 
 <div id="comment-wrapper">
 
   <div id="addcomment">
     {% if comments_open %}
-    <form action="/addcomment/" method="post">
-      <p class="formrow"><label for="yourname">Name:</label>
-        <input type="text" class="text" id="yourname" name="name" value="{{ name }}">
-      </p>
-      {% if not openid %}<p class="formrow"><label for="yoururl">URL:</label>
-        <input type="text" class="text" id="yoururl" name="url">
-      </p>
-      <p><img alt="" src="/static/css/img/openid-14x14.png" style="vertical-align: top; padding-top: 3px"> <a
-          href="/openid/">Sign in with OpenID</a></p>
+    <form class="ui form" action="/addcomment/" method="post">
+      <div class="field">
+        <label for="yourname">Name:</label>
+        <input type="text" id="yourname" name="name" value="{{ name }}">
+      </div>
+      {% if not openid %}
+      <div class="field">
+        <label for="yoururl">URL:</label>
+        <input type="text" id="yoururl" name="url">
+      </div>
+      <div class="ui message">
+        <img alt="" src="/static/css/img/openid-14x14.png" style="vertical-align: top; padding-top: 3px"> <a
+          href="/openid/">Sign in with OpenID</a>
+      </div>
       {% else %}
-      <p style="clear: both;"><strong><img alt="" src="/static/css/img/openid-14x14.png"
-            style="vertical-align: top; padding-top: 3px"> {{ openid }}</strong></p>
+      <div class="ui message">
+        <strong><img alt="" src="/static/css/img/openid-14x14.png"
+            style="vertical-align: top; padding-top: 3px"> {{ openid }}</strong>
+      </div>
       {% endif %}
-      <p class="formrow"><textarea rows="10" cols="35" name="body"></textarea></p>
-      <p><input type="radio" name="html_mode" value="simple" id="html_simple" checked="checked">
-        <label for="html_simple">Auto-HTML</label>
-        <input type="radio" name="html_mode" value="advanced" id="html_advanced">
-        <label for="html_advanced">Manual XHTML</label>
-      </p>
-      <p id="help_html_simple" class="help">
+      <div class="field">
+        <textarea rows="10" name="body"></textarea>
+      </div>
+      <div class="grouped fields">
+        <div class="field">
+          <div class="ui radio checkbox">
+            <input type="radio" name="html_mode" value="simple" id="html_simple" checked="checked">
+            <label for="html_simple">Auto-HTML</label>
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui radio checkbox">
+            <input type="radio" name="html_mode" value="advanced" id="html_advanced">
+            <label for="html_advanced">Manual XHTML</label>
+          </div>
+        </div>
+      </div>
+      <div class="ui info message" id="help_html_simple">
         <strong class="helpcontext">Auto-HTML:</strong> Line breaks are preserved; URLs will be converted in to links.
-      </p>
-      <p id="help_html_advanced" class="help">
+      </div>
+      <div class="ui info message" id="help_html_advanced">
         <strong class="helpcontext">Manual XHTML:</strong> Enter your own, valid <acronym title="eXtensible HyperText Markup
     Language">XHTML</acronym>. Allowed tags are
         <samp>a</samp>, <samp>p</samp>, <samp>blockquote</samp>, <samp>ul</samp>,
@@ -81,14 +101,13 @@
         <samp>code</samp>, <samp>q</samp>, <samp>samp</samp>, <samp>kbd</samp>,
         <samp>var</samp>, <samp>cite</samp>, <samp>abbr</samp>, <samp>acronym</samp>,
         <samp>sub</samp>, <samp>sup</samp>, <samp>br</samp>, <samp>pre</samp>
-      </p>
-      <p><input type="submit" value="Preview comment">
-        <input type="hidden" name="content_type" value="{{ content_type }}">
-        <input type="hidden" name="object_id" value="{{ object_id }}">
-      </p>
+      </div>
+      <button class="ui button" type="submit">Preview comment</button>
+      <input type="hidden" name="content_type" value="{{ content_type }}">
+      <input type="hidden" name="object_id" value="{{ object_id }}">
     </form>
     {% else %}
-    <em>Comments are closed.</em>
+    <div class="ui message"><em>Comments are closed.</em></div>
     {% endif %}
   </div><!-- #addcomment -->
 

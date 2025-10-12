@@ -30,19 +30,17 @@ $(document).ready(function() {
     $('.carousel-nav').hide();
   }
 
-  $('.ui.modal').modal({
-    closable: true,
-    onHide: function() {
-      $(this).addClass('hidden');
-    }
-  });
-
-  $('.clickable').on('click', function() {
-    // get the picture id
-    const pictureId = $(this).attr('id');
-    console.log('clicked', pictureId);
-    // show the modal
-    $('#' + pictureId).modal('show');
+  // Handle image clicks to show in modal
+  $('.image-wrapper.clickable').on('click', function() {
+    const imageTitle = $(this).data('title');
+    const imageSrc = $(this).find('img').attr('src');
+    
+    // Populate modal
+    $('#photo-modal .header').text(imageTitle || 'Photo');
+    $('#photo-modal img').attr('src', imageSrc);
+    
+    // Show modal
+    $('#photo-modal').modal('show');
   });
 });
 
@@ -59,7 +57,9 @@ $(document).ready(function() {
         <div class="stretched row">
     {% endif %}
           <div class="column">
-            {% picture photo.image picture_id=photo.html_id img_alt="site photoset" img_loading="lazy" picture_class="ui fluid image clickable" %}
+            <div class="image-wrapper clickable" data-title="{{ photo.title }}" style="cursor: pointer;">
+              {% picture photo.image picture_id=photo.html_id img_alt="{{ photo.title }}" img_loading="lazy" picture_class="ui fluid image" %}
+            </div>
           </div>
     {% if forloop.counter|divisibleby:3 or forloop.last %}
         </div>
@@ -72,4 +72,15 @@ $(document).ready(function() {
   </button>
 </div>
 
+<!-- Photo Modal -->
+<div id="photo-modal" class="ui modal">
+  <i class="close icon"></i>
+  <div class="header">
+    Photo Title
+  </div>
+  <div class="image content">
+    <div class="ui fluid image">
+      <img src="" alt="Photo">
+    </div>
+  </div>
 </div>

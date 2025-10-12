@@ -56,6 +56,7 @@ FAVICON = open(os.path.join(settings.BASE_DIR, "static/favicon.ico"), "rb").read
 
 
 def static_redirect(request):
+    logger.info("Static redirect")
     return HttpResponsePermanentRedirect(
         "http://static.artful.one%s" % request.get_full_path()
     )
@@ -166,7 +167,7 @@ urlpatterns = [
     path("dashboard/", include(django_sql_dashboard.urls)),
     path("user-from-cookies/", blog_views.user_from_cookies),
     path("tags-autocomplete/", tag_views.tags_autocomplete),
-] + djp.urlpatterns()
+]
 
 if settings.DEBUG:
     # In development, serve static files locally

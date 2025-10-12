@@ -1,11 +1,75 @@
 {% load pictures %}
-<div class="ui stackable three column grid">
-  <div class="stretched row">
-    {% for photo in photoset.get_randomized_photos|slice:":3" %}
-      <div class="column">
-        {% picture photo.image img_alt="site photoset" img_loading="lazy" picture_class="ui fluid image" %}
+<script>
+$(document).ready(function() {
+  let currentSlide = 0;
+  const slides = $('.carousel-slide');
+  const totalSlides = slides.length;
+  
+  function showSlide(index) {
+    slides.removeClass('active');
+    $(slides[index]).addClass('active');
+  }
+  
+  $('#carousel-prev').on('click', function() {
+    currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+    showSlide(currentSlide);
+  });
+  
+  $('#carousel-next').on('click', function() {
+    currentSlide = (currentSlide + 1) % totalSlides;
+    showSlide(currentSlide);
+  });
+  
+  // Show first slide
+  if (totalSlides > 0) {
+    showSlide(0);
+  }
+  
+  // Hide nav buttons if only one slide
+  if (totalSlides <= 1) {
+    $('.carousel-nav').hide();
+  }
+
+  $('.ui.modal').modal({
+    closable: true,
+    onHide: function() {
+      $(this).addClass('hidden');
+    }
+  });
+
+  $('.clickable').on('click', function() {
+    // get the picture id
+    const pictureId = $(this).attr('id');
+    console.log('clicked', pictureId);
+    // show the modal
+    $('#' + pictureId).modal('show');
+  });
+});
+
+</script>
+
+<div class="carousel-container">
+  <button id="carousel-prev" class="ui circular icon button carousel-nav left">
+    <i class="left chevron icon"></i>
+  </button>
+  
+  {% for photo in photoset.get_randomized_photos %}
+    {% if forloop.counter0|divisibleby:3 %}
+      <div class="ui stackable three column grid carousel-slide">
+        <div class="stretched row">
+    {% endif %}
+          <div class="column">
+            {% picture photo.image picture_id=photo.html_id img_alt="site photoset" img_loading="lazy" picture_class="ui fluid image clickable" %}
+          </div>
+    {% if forloop.counter|divisibleby:3 or forloop.last %}
+        </div>
       </div>
-    {% endfor %}
-  </div>
+    {% endif %}
+  {% endfor %}
+  
+  <button id="carousel-next" class="ui circular icon button carousel-nav right">
+    <i class="right chevron icon"></i>
+  </button>
 </div>
 
+</div>

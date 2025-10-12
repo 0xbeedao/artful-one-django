@@ -447,6 +447,10 @@ class Photo(models.Model):
     external_url = models.URLField(blank=True, null=True)
     external_title = models.CharField(max_length=255, blank=True, null=True)
 
+    @property
+    def html_id(self):
+        return "picture_%d" % self.id
+
     def __str__(self):
         return self.title
 

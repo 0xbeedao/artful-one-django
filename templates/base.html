@@ -8,13 +8,21 @@
 <script defer data-domain="artful.one" src="https://plausible.io/js/plausible.js"></script>
 <link rel="alternate" type="application/atom+xml" title="Atom" href="/atom/everything/">
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="{% static "css/site.css" %}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.4/dist/semantic.min.css">
 <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.4/dist/semantic.min.js"></script>
 <script type="text/javascript" src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
 <link rel="webmention" href="https://webmention.io/artful.one/webmention">
 <link rel="pingback" href="https://webmention.io/artful.one/xmlrpc">
 <meta name="author" content="Bruce Kroeze">
-<meta property="og:site_name" content="Bruce Kroeze’s Weblog">
+<meta property="og:site_name" content="Bruce Kroeze's Weblog">
+<style>
+  :root {
+    --site-accent-color: #8b8383;
+    --site-accent-light: rgba(139, 131, 131, 0.1);
+    --site-accent-shadow: rgba(139, 131, 131, 0.3);
+  }
+</style>
 {% block extrahead %}{% endblock %}
 
 </head>

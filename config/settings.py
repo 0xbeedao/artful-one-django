@@ -1,6 +1,5 @@
 import os
 import dj_database_url
-import djp
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -247,6 +246,3 @@ PICTURES = {
     "QUEUE_NAME": "pictures",
     "PROCESSOR": "pictures.tasks.process_picture",
 }
-
-
-djp.settings(globals())

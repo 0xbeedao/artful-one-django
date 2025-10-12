@@ -197,6 +197,7 @@ else:
     ]
 
 if get_settings().USE_PLACEHOLDERS:
+    logger.info("Using placeholders")
     urlpatterns += [
         path("_pictures/", include("pictures.urls")),
     ]

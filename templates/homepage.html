@@ -13,6 +13,11 @@
 {% endblock %}
 
 {% block primary %}
+{% load carousel_tags %}
+{% carousel site_photoset %}
+{% endblock %}
+
+{% block secondary %}
 <h2 class="overband">Recent</h2>
 
 {% load blog_tags %}

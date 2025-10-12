@@ -1,0 +1,11 @@
+{% load pictures %}
+<div class="ui stackable three column grid">
+  <div class="stretched row">
+    {% for photo in photoset.get_randomized_photos|slice:":3" %}
+      <div class="column">
+        {% picture photo.image img_alt="site photoset" img_loading="lazy" picture_class="ui fluid image" %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+

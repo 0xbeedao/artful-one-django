@@ -179,6 +179,12 @@ def index(request):
 
     items.sort(key=lambda x: x["obj"].created, reverse=True)
 
+    site_photosets = Photoset.objects.filter(slug="site")
+    if site_photosets.count() > 0:
+        site_photoset = site_photosets.first()
+    else:
+        site_photoset = None
+
     response = render(
         request,
         "homepage.html",
@@ -188,6 +194,7 @@ def index(request):
             .only("id", "slug", "created", "title", "extra_head_html")
             .prefetch_related("tags")[0:40],
             "current_tags": find_current_tags(5),
+            "site_photoset": site_photoset,
         },
     )
     response["Cache-Control"] = "s-maxage=200"

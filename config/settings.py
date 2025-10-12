@@ -176,8 +176,8 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "static/"),)
 
 # Media files (user-uploaded content)
-MEDIA_ROOT = os.path.join(BASE_DIR, "photos")
-MEDIA_URL = "/photos/"
+MEDIA_ROOT = BASE_DIR
+MEDIA_URL = "/"
 
 # Simplified static file serving.
 # https://warehouse.python.org/project/whitenoise/
@@ -243,7 +243,7 @@ PICTURES = {
     "CONTAINER_WIDTH": 1200,
     "FILE_TYPES": ["AVIF"],
     "PIXEL_DENSITIES": [1, 2],
-    "USE_PLACEHOLDERS": True,
+    "USE_PLACEHOLDERS": False,
     "QUEUE_NAME": "pictures",
     "PROCESSOR": "pictures.tasks.process_picture",
 }

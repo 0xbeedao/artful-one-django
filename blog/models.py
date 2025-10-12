@@ -443,6 +443,9 @@ class Photo(models.Model):
     width = models.PositiveIntegerField(default=0)
     height = models.PositiveIntegerField(default=0)
     photo_tags = models.ManyToManyField(PhotoTag, blank=True)
+    description = models.TextField(blank=True, null=True)
+    external_url = models.URLField(blank=True, null=True)
+    external_title = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -450,7 +453,8 @@ class Photo(models.Model):
 
 class Photoset(models.Model):
     created = models.DateTimeField(default=timezone.now)
-    flickr_id = models.CharField(max_length=32)
+    slug = models.SlugField(unique=True, null=True, blank=True)
+    is_draft = models.BooleanField(default=False)
     title = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField()
     photos = models.ManyToManyField(
@@ -458,6 +462,15 @@ class Photoset(models.Model):
         related_name="in_photoset",
     )
     primary = models.ForeignKey(Photo, on_delete=models.CASCADE)
+
+    def get_randomized_photos(self):
+        """Get a random selection of photos, including the primary photo"""
+        randomized = self.photos.order_by("?")
+        out = []
+        if self.primary:
+            out.append(self.primary)
+        out.extend(randomized.exclude(id=self.primary.id))
+        return out
 
     def __str__(self):
         return self.title

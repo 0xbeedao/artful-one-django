@@ -1,4 +1,5 @@
 {% extends "item_base.html" %}
+{% load static %}
 
 {% block title %}About Bruce Kroeze{% endblock %}
 
@@ -7,8 +8,20 @@
 {% block item_content %}{% load blog_tags %}
 <h2>About me</h2>
 
-<p>TBD: Need short bio here.</p>
-
+<div class="ui container">
+    <div class="ui relaxed divided items">
+        <div class="item">
+            <div class="ui small rounded image">
+                <img src="{% static "homepage/bruce.png" %}" alt="Bruce Kroeze">
+            </div>
+            <div class="content">
+                <p>Hi, I'm Bruce, welcome to my personal website.</p>
+                <p><i class="quote left icon"></i>Where else am I gonna put all my experiments and such?<i class="quote right icon"></i></p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="ui container" style="margin-top: 2em;">
 <p>You can subscribe to my blog using Atom feeds or by following me on Twitter.</p>
 
 <ul>
@@ -37,15 +50,20 @@
 
 <h3 id="disclosures">Disclosures</h3>
 
-{% filter markdownify %}
-I do not receive any compensation writing about specific topics on this blog - no sponsored content! I plan to continue this policy. If I ever change this I will disclose that both here and in the post itself.
-
-I provide ad-hoc consulting and training services to a number of different companies and organizations. If any of those represent a conflict of interest with my writing here I will disclose that in the relevant post.
-
-{% endfilter %}
+<p>
+I do not receive any compensation writing about specific topics on this blog - no sponsored content! 
+I plan to continue this policy. If I ever change this I will disclose that both here and in the post itself.
+</p>
+<p>
+I provide ad-hoc consulting and training services to a number of different companies and organizations. 
+If any of those represent a conflict of interest with my writing here I will disclose that in the relevant post.
+</p>
 
 <h2 id="about-site">About this site</h2>
 
 <p>This site is a custom web application built using <a href="https://www.djangoproject.com/">Django</a>. 
+    It is based on <a href="https://github.com/simonw/simonwillisonblog">Simon Willison's Blog</a>, but with entirely new templates, CSS and
+    the image carousel functionality replaced with a custom implementation that I'm quite pleased with.
     The source code can be found on GitHub at <a href="https://github.com/0xbeedao/artful-one-django">0xbeedao/artful-one-django</a>.</p>
-{% endblock %}
+</div>
+    {% endblock %}

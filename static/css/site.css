@@ -36,6 +36,9 @@
 
 .carousel-image-item {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .carousel-image-item img {
@@ -63,4 +66,24 @@
 
 .hidden {
   display: none;
+}
+
+/* Photo Modal Styling */
+#photo-modal.ui.modal {
+  max-width: 90vw;
+  max-height: 90vh;
+  margin: auto;
+}
+
+#photo-modal.ui.modal .content {
+  max-height: calc(90vh - 120px);
+  overflow: auto;
+}
+
+#photo-modal.ui.modal .image.content img {
+  max-width: 100%;
+  max-height: calc(90vh - 160px);
+  object-fit: contain;
+  margin: 0 auto;
+  display: block;
 }

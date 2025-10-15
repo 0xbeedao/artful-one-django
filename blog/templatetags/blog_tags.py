@@ -1,4 +1,5 @@
 from django import template
+from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from markdown import markdown
 
@@ -100,3 +101,11 @@ def markdownify(text):
     Convert Markdown text to HTML.
     """
     return mark_safe(markdown(text))
+
+
+@register.filter
+def markdownify_strip_tags(text):
+    """
+    Convert Markdown text to HTML and strip tags.
+    """
+    return mark_safe(strip_tags(markdown(text)))

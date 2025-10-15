@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models.functions import Length
 from django.db.models import F
 from django import forms

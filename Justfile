@@ -4,3 +4,6 @@ default:
 static: 
   uv run manage.py collectstatic
 
+test:
+  uv run pytest
+  

@@ -1,14 +1,16 @@
+import pytest
 from datetime import datetime
 
-from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from .models import Newsletter
 
 
-class MonthlyViewsTests(TestCase):
-    def setUp(self):
+@pytest.mark.django_db
+class TestMonthlyViews:
+    @pytest.fixture(autouse=True)
+    def setup_newsletters(self):
         self.newsletter_old = Newsletter.objects.create(
             subject="Older edition",
             body="Old body",
@@ -20,29 +22,29 @@ class MonthlyViewsTests(TestCase):
             sent_at=timezone.make_aware(datetime(2024, 2, 29, 12, 0, 0)),
         )
 
-    def test_monthly_index_lists_newsletters(self):
-        response = self.client.get(reverse("monthly:index"))
-        self.assertEqual(response.status_code, 200)
+    def test_monthly_index_lists_newsletters(self, client):
+        response = client.get(reverse("monthly:index"))
+        assert response.status_code == 200
         newsletters = list(response.context["newsletters"])
-        self.assertEqual(newsletters, [self.newsletter_new, self.newsletter_old])
-        self.assertContains(response, "Newer edition")
-        self.assertContains(response, "Older edition")
-        self.assertContains(
-            response,
-            reverse("monthly:detail", kwargs={"year": 2024, "month": "02"}),
+        assert newsletters == [self.newsletter_new, self.newsletter_old]
+        assert "Newer edition" in response.content.decode()
+        assert "Older edition" in response.content.decode()
+        assert (
+            reverse("monthly:detail", kwargs={"year": 2024, "month": "02"})
+            in response.content.decode()
         )
 
-    def test_newsletter_detail_renders_content(self):
-        response = self.client.get(
+    def test_newsletter_detail_renders_content(self, client):
+        response = client.get(
             reverse("monthly:detail", kwargs={"year": 2024, "month": "02"})
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["newsletter"], self.newsletter_new)
-        self.assertContains(response, "Newer edition")
-        self.assertContains(response, "<strong>body</strong>", html=True)
+        assert response.status_code == 200
+        assert response.context["newsletter"] == self.newsletter_new
+        assert "Newer edition" in response.content.decode()
+        assert "<strong>body</strong>" in response.content.decode()
 
-    def test_newsletter_detail_missing(self):
-        response = self.client.get(
+    def test_newsletter_detail_missing(self, client):
+        response = client.get(
             reverse("monthly:detail", kwargs={"year": 2023, "month": "12"})
         )
-        self.assertEqual(response.status_code, 404)
+        assert response.status_code == 404

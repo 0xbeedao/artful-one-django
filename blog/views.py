@@ -106,30 +106,35 @@ def archive_item(request, year, month, day, slug):
                     .rsplit(":", 1)[0]
                 )
 
-        response = render(
-            request,
-            template,
-            {
-                content_type: obj,
-                "content_type": content_type,
-                "object_id": obj.id,
-                "previously_hosted": None,
-                "item": obj,
-                "recent_articles": Entry.objects.filter(is_draft=False)
-                .prefetch_related("tags")
-                .order_by("-created")[0:3],
-                "is_draft": obj.is_draft,
-                "updates": updates,
-            },
-        )
-        if obj.is_draft:
-            set_no_cache(response)
-        else:
-            six_months = datetime.timedelta(days=180)
-            if obj.created < timezone.now() - six_months:
-                response["Cache-Control"] = "s-maxage={}".format(24 * 60 * 60)
-        response["x-enable-card"] = "1"
-        return response
+        try:
+            response = render(
+                request,
+                template,
+                {
+                    content_type: obj,
+                    "content_type": content_type,
+                    "object_id": obj.id,
+                    "previously_hosted": None,
+                    "item": obj,
+                    "recent_articles": Entry.objects.filter(is_draft=False)
+                    .prefetch_related("tags")
+                    .order_by("-created")[0:3],
+                    "is_draft": obj.is_draft,
+                    "updates": updates,
+                },
+            )
+            if obj.is_draft:
+                set_no_cache(response)
+            else:
+                six_months = datetime.timedelta(days=180)
+                if obj.created < timezone.now() - six_months:
+                    response["Cache-Control"] = "s-maxage={}".format(24 * 60 * 60)
+            response["x-enable-card"] = "1"
+            return response
+        except Exception as e:
+            print(f"Error rendering {template}")
+            print(e)
+            raise e
 
     # If we get here, non of the views matched
     raise Http404

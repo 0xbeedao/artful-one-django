@@ -7,8 +7,6 @@ from django.http import (
 )
 from django.views.decorators.cache import never_cache
 from django.conf import settings
-import django_sql_dashboard
-import djp
 from blog import views as blog_views
 from blog import search as search_views
 from blog import tag_views
@@ -164,7 +162,6 @@ urlpatterns = [
     path("api/add-tag/", blog_views.api_add_tag, name="api_add_tag"),
     re_path(r"^admin/", admin.site.urls),
     # re_path(r"^static/", static_redirect),
-    path("dashboard/", include(django_sql_dashboard.urls)),
     path("user-from-cookies/", blog_views.user_from_cookies),
     path("tags-autocomplete/", tag_views.tags_autocomplete),
 ]

@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django_sql_dashboard",
     "django.contrib.humanize",
     "django_hosts",
     "blog",
@@ -129,11 +128,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": "artful-one.db",
-    },
-    "dashboard": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "artful-one.db",
-    },
+    }
 }
 
 # Internationalization
@@ -145,8 +140,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
-
-DASHBOARD_ENABLE_FULL_EXPORT = True
 
 if "DATABASE_URL" in os.environ:
     # Parse database configuration from $DATABASE_URL

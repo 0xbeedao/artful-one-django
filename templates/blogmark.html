@@ -2,11 +2,10 @@
 
 {% block title %}{{ blogmark.title|default:blogmark.link_title }}{% endblock %}
 {% load entry_tags %}
-
-{% block extrahead %}
+{% load blog_tags %}
 
 {% block card_title %}{{ blogmark.title|default:blogmark.link_title|typography }}{% endblock %}
-{% block card_description %}{{ blogmark.body|striptags|truncatewords:30|force_escape }}{% endblock %}
+{% block card_description %}{{ blogmark.commentary|markdownify_strip_tags|truncatewords:30|force_escape }}{% endblock %}
 
 {% block item_content %}
 {% include "_draft_warning.html" %}

@@ -1,27 +1,28 @@
-from django.test import TestCase
+import pytest
 from .models import SubscriberCount
 import datetime
 
 
-class FeedstatsTests(TestCase):
-    def test_feedstats_records_subscriber_numbers(self):
-        self.assertEqual(0, SubscriberCount.objects.count())
+@pytest.mark.django_db
+class TestFeedstats:
+    def test_feedstats_records_subscriber_numbers(self, client):
+        assert SubscriberCount.objects.count() == 0
         # If no \d+ subscribers, we don't record anything
-        self.client.get("/atom/everything/", HTTP_USER_AGENT="Blah")
-        self.assertEqual(0, SubscriberCount.objects.count())
-        self.client.get("/atom/everything/", HTTP_USER_AGENT="Blah (10 subscribers)")
-        self.assertEqual(1, SubscriberCount.objects.count())
+        client.get("/atom/everything/", HTTP_USER_AGENT="Blah")
+        assert SubscriberCount.objects.count() == 0
+        client.get("/atom/everything/", HTTP_USER_AGENT="Blah (10 subscribers)")
+        assert SubscriberCount.objects.count() == 1
         row = SubscriberCount.objects.all()[0]
-        self.assertEqual("/atom/everything/", row.path)
-        self.assertEqual(10, row.count)
-        self.assertEqual(datetime.date.today(), row.created.date())
-        self.assertEqual("Blah (X subscribers)", row.user_agent)
+        assert row.path == "/atom/everything/"
+        assert row.count == 10
+        assert row.created.date() == datetime.date.today()
+        assert row.user_agent == "Blah (X subscribers)"
         # If we hit again with the same number, no new record is recorded
-        self.client.get("/atom/everything/", HTTP_USER_AGENT="Blah (10 subscribers)")
-        self.assertEqual(1, SubscriberCount.objects.count())
+        client.get("/atom/everything/", HTTP_USER_AGENT="Blah (10 subscribers)")
+        assert SubscriberCount.objects.count() == 1
         # If we hit again with a different number, we record a new row
-        self.client.get("/atom/everything/", HTTP_USER_AGENT="Blah (11 subscribers)")
-        self.assertEqual(2, SubscriberCount.objects.count())
+        client.get("/atom/everything/", HTTP_USER_AGENT="Blah (11 subscribers)")
+        assert SubscriberCount.objects.count() == 2
         row = SubscriberCount.objects.all()[1]
-        self.assertEqual(11, row.count)
-        self.assertEqual("Blah (X subscribers)", row.user_agent)
+        assert row.count == 11
+        assert row.user_agent == "Blah (X subscribers)"

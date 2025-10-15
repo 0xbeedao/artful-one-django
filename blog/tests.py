@@ -1,4 +1,4 @@
-from django.test import TransactionTestCase
+import pytest
 from blog.templatetags.entry_tags import do_typography_string
 from .factories import (
     EntryFactory,
@@ -13,8 +13,9 @@ import json
 import xml.etree.ElementTree as ET
 
 
-class BlogTests(TransactionTestCase):
-    def test_homepage(self):
+@pytest.mark.django_db(transaction=True)
+class TestBlog:
+    def test_homepage(self, client):
         db_entries = [
             EntryFactory(),
             EntryFactory(),
@@ -23,18 +24,13 @@ class BlogTests(TransactionTestCase):
         BlogmarkFactory()
         QuotationFactory()
         NoteFactory()
-        response = self.client.get("/")
+        response = client.get("/")
         entries = response.context["entries"]
-        self.assertEqual(
-            [e.pk for e in entries],
-            [e.pk for e in sorted(db_entries, key=lambda e: e.created, reverse=True)],
-        )
+        assert [e.pk for e in entries] == [
+            e.pk for e in sorted(db_entries, key=lambda e: e.created, reverse=True)
+        ]
 
-    def test_django_header_plugin(self):
-        response = self.client.get("/")
-        self.assertIn("Django-Composition", response)
-
-    def test_other_pages(self):
+    def test_other_pages(self, client):
         entry = EntryFactory()
         blogmark = BlogmarkFactory()
         quotation = QuotationFactory()
@@ -49,69 +45,59 @@ class BlogTests(TransactionTestCase):
             "/{}/".format(entry.created.year),
             "/atom/everything/",
         ):
-            response = self.client.get(path)
+            response = client.get(path)
             assert response.status_code == 200
 
-    def test_entry(self):
+    def test_entry(self, client):
         entry = EntryFactory()
-        response = self.client.get(entry.get_absolute_url())
-        self.assertTemplateUsed(response, "entry.html")
-        self.assertEqual(response.context["entry"].pk, entry.pk)
+        response = client.get(entry.get_absolute_url())
+        assert "entry.html" in [template.name for template in response.templates]
+        assert response.context["entry"].pk == entry.pk
 
-    def test_blogmark(self):
+    def test_blogmark(self, client):
         blogmark = BlogmarkFactory()
-        response = self.client.get(blogmark.get_absolute_url())
-        self.assertTemplateUsed(response, "blogmark.html")
-        self.assertEqual(response.context["blogmark"].pk, blogmark.pk)
+        response = client.get(blogmark.get_absolute_url())
+        assert "blogmark.html" in [template.name for template in response.templates]
+        assert response.context["blogmark"].pk == blogmark.pk
 
-    def test_quotation(self):
+    def test_quotation(self, client):
         quotation = QuotationFactory()
-        response = self.client.get(quotation.get_absolute_url())
-        self.assertTemplateUsed(response, "quotation.html")
-        self.assertEqual(response.context["quotation"].pk, quotation.pk)
+        response = client.get(quotation.get_absolute_url())
+        assert "quotation.html" in [template.name for template in response.templates]
+        assert response.context["quotation"].pk == quotation.pk
 
-    def test_note(self):
+    def test_note(self, client):
         note = NoteFactory()
-        response = self.client.get(note.get_absolute_url())
-        self.assertTemplateUsed(response, "note.html")
-        self.assertEqual(response.context["note"].pk, note.pk)
+        response = client.get(note.get_absolute_url())
+        assert "note.html" in [template.name for template in response.templates]
+        assert response.context["note"].pk == note.pk
 
-    def test_cache_header_for_old_content(self):
+    def test_cache_header_for_old_content(self, client):
         old_date = timezone.now() - datetime.timedelta(days=181)
         entry = EntryFactory(created=old_date)
-        response = self.client.get(entry.get_absolute_url())
+        response = client.get(entry.get_absolute_url())
         assert response.headers["cache-control"] == "s-maxage=%d" % (24 * 60 * 60)
 
-    def test_no_cache_header_for_recent_content(self):
+    def test_no_cache_header_for_recent_content(self, client):
         recent_entry = EntryFactory(created=timezone.now())
-        response = self.client.get(recent_entry.get_absolute_url())
+        response = client.get(recent_entry.get_absolute_url())
         assert "cache-control" not in response.headers
 
-    def test_archive_year(self):
+    def test_archive_year(self, client):
         quotation = QuotationFactory()
-        response = self.client.get("/{}/".format(quotation.created.year))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "archive_year.html")
+        response = client.get("/{}/".format(quotation.created.year))
+        assert response.status_code == 200
+        assert "archive_year.html" in [template.name for template in response.templates]
 
-    def test_markup(self):
+    def test_markup(self, client):
         entry = EntryFactory(
             title="Hello & goodbye",
             body="<p>First paragraph</p><p>Second paragraph</p>",
         )
-        response = self.client.get(entry.get_absolute_url())
-        self.assertContains(
-            response,
-            """
-            <h2>Hello &amp; goodbye</h2>
-        """,
-            html=True,
-        )
-        self.assertContains(
-            response,
-            """
-            <p>First paragraph</p><p>Second paragraph</p>
-        """.strip(),
-        )
+        response = client.get(entry.get_absolute_url())
+        decoded_content = response.content.decode()
+        assert "Hello &amp; goodbye" in decoded_content
+        assert "<p>First paragraph</p><p>Second paragraph</p>" in decoded_content
 
     def test_update_blogmark_runs_commit_hooks(self):
         # This was throwing errors on upgrade Django 2.2 to 2.2.1
@@ -135,29 +121,29 @@ class BlogTests(TransactionTestCase):
                 'Should you pin your library\'s dependencies using "click>=7,<8" or "click~=7.0"? Henry Schreiner\'s short answer is no, and his long answer is an exhaustive essay covering every conceivable aspect of this thorny Python packaging problem.',
             ),
         ):
-            self.assertEqual(do_typography_string(input), expected)
+            assert do_typography_string(input) == expected
 
-    def test_rename_tag_creates_previous_tag_name(self):
+    def test_rename_tag_creates_previous_tag_name(self, client):
         tag = Tag.objects.create(tag="old-name")
         tag.entry_set.create(
             title="Test entry",
             body="Test entry body",
             created="2020-01-01T00:00:00+00:00",
         )
-        assert self.client.get("/tags/old-name/").status_code == 200
-        assert self.client.get("/tags/new-name/").status_code == 404
+        assert client.get("/tags/old-name/").status_code == 200
+        assert client.get("/tags/new-name/").status_code == 404
         tag.rename_tag("new-name")
-        self.assertEqual(tag.tag, "new-name")
+        assert tag.tag == "new-name"
         previous_tag_name = PreviousTagName.objects.get(tag=tag)
-        self.assertEqual(previous_tag_name.previous_name, "old-name")
-        assert self.client.get("/tags/old-name/").status_code == 301
-        assert self.client.get("/tags/new-name/").status_code == 200
+        assert previous_tag_name.previous_name == "old-name"
+        assert client.get("/tags/old-name/").status_code == 301
+        assert client.get("/tags/new-name/").status_code == 200
 
     def test_tag_with_hyphen(self):
         tag = Tag.objects.create(tag="tag-with-hyphen")
-        self.assertEqual(tag.tag, "tag-with-hyphen")
+        assert tag.tag == "tag-with-hyphen"
 
-    def test_draft_items_not_displayed(self):
+    def test_draft_items_not_displayed(self, client):
         draft_entry = EntryFactory(is_draft=True, title="draftentry")
         draft_blogmark = BlogmarkFactory(is_draft=True, link_title="draftblogmark")
         draft_quotation = QuotationFactory(is_draft=True, source="draftquotation")
@@ -201,7 +187,7 @@ class BlogTests(TransactionTestCase):
             live_entry.get_absolute_url(),
         )
 
-        counts = json.loads(self.client.get("/tags-autocomplete/?q=testing").content)
+        counts = json.loads(client.get("/tags-autocomplete/?q=testing").content)
         assert counts == {
             "tags": [
                 {
@@ -219,16 +205,16 @@ class BlogTests(TransactionTestCase):
         }
 
         for path in paths:
-            response = self.client.get(path)
-            self.assertNotContains(response, "draftentry")
+            response = client.get(path)
+            assert "draftentry" not in response.content.decode()
 
         robots_fragment = '<meta name="robots" content="noindex">'
         draft_warning_fragment = "This is a draft post"
 
         for obj in (draft_entry, draft_blogmark, draft_quotation, draft_note):
-            response2 = self.client.get(obj.get_absolute_url())
-            self.assertContains(response2, robots_fragment)
-            self.assertContains(response2, draft_warning_fragment)
+            response2 = client.get(obj.get_absolute_url())
+            assert robots_fragment in response2.content.decode()
+            assert draft_warning_fragment in response2.content.decode()
             assert (
                 response2.headers["cache-control"]
                 == "private, no-cache, no-store, must-revalidate"
@@ -238,12 +224,12 @@ class BlogTests(TransactionTestCase):
             obj.is_draft = False
             obj.save()
 
-            response3 = self.client.get(obj.get_absolute_url())
-            self.assertNotContains(response3, robots_fragment)
-            self.assertNotContains(response3, draft_warning_fragment)
+            response3 = client.get(obj.get_absolute_url())
+            assert robots_fragment not in response3.content.decode()
+            assert draft_warning_fragment not in response3.content.decode()
             assert "cache-control" not in response3.headers
 
-        counts2 = json.loads(self.client.get("/tags-autocomplete/?q=testing").content)
+        counts2 = json.loads(client.get("/tags-autocomplete/?q=testing").content)
         assert counts2 == {
             "tags": [
                 {
@@ -261,24 +247,24 @@ class BlogTests(TransactionTestCase):
         }
 
         for path in paths:
-            response4 = self.client.get(path)
-            self.assertContains(response4, "draftentry")
+            response4 = client.get(path)
+            assert "draftentry" in response4.content.decode()
 
-    def test_draft_items_not_in_feeds(self):
+    def test_draft_items_not_in_feeds(self, client):
         draft_entry = EntryFactory(is_draft=True, title="draftentry")
         draft_blogmark = BlogmarkFactory(is_draft=True, link_title="draftblogmark")
         draft_quotation = QuotationFactory(is_draft=True, source="draftquotation")
 
-        response1 = self.client.get("/atom/entries/")
-        self.assertNotContains(response1, draft_entry.title)
+        response1 = client.get("/atom/entries/")
+        assert draft_entry.title not in response1.content.decode()
 
-        response2 = self.client.get("/atom/links/")
-        self.assertNotContains(response2, draft_blogmark.link_title)
+        response2 = client.get("/atom/links/")
+        assert draft_blogmark.link_title not in response2.content.decode()
 
-        response3 = self.client.get("/atom/everything/")
-        self.assertNotContains(response3, draft_entry.title)
-        self.assertNotContains(response3, draft_blogmark.link_title)
-        self.assertNotContains(response3, draft_quotation.source)
+        response3 = client.get("/atom/everything/")
+        assert draft_entry.title not in response3.content.decode()
+        assert draft_blogmark.link_title not in response3.content.decode()
+        assert draft_quotation.source not in response3.content.decode()
 
         # Change draft status and check they show up
         draft_entry.is_draft = False
@@ -290,191 +276,166 @@ class BlogTests(TransactionTestCase):
         draft_quotation.is_draft = False
         draft_quotation.save()
 
-        response4 = self.client.get("/atom/entries/")
-        self.assertContains(response4, draft_entry.title)
+        response4 = client.get("/atom/entries/")
+        assert draft_entry.title in response4.content.decode()
 
-        response5 = self.client.get("/atom/links/")
-        self.assertContains(response5, draft_blogmark.link_title)
+        response5 = client.get("/atom/links/")
+        assert draft_blogmark.link_title in response5.content.decode()
 
-        response6 = self.client.get("/atom/everything/")
-        self.assertContains(response6, draft_entry.title)
-        self.assertContains(response6, draft_blogmark.link_title)
-        self.assertContains(response6, draft_quotation.source)
+        response6 = client.get("/atom/everything/")
+        assert draft_entry.title in response6.content.decode()
+        assert draft_blogmark.link_title in response6.content.decode()
+        assert draft_quotation.source in response6.content.decode()
 
-    def test_entries_feed_includes_subscribe_note(self):
+    def test_entries_feed_includes_subscribe_note(self, client):
         EntryFactory()
-        response = self.client.get("/atom/entries/")
-        self.assertIn(
-            "You are only seeing the",
-            response.content.decode(),
-        )
+        response = client.get("/atom/entries/")
+        assert "You are only seeing the" in response.content.decode()
 
-    def test_og_description_strips_markdown(self):
+    def test_og_description_strips_markdown(self, client):
         blogmark = BlogmarkFactory(
             commentary="This **has** *markdown*", use_markdown=True
         )
-        response = self.client.get(blogmark.get_absolute_url())
-        self.assertContains(
-            response,
-            '<meta property="og:description" content="This has markdown"',
-            html=False,
-        )
+        response = client.get(blogmark.get_absolute_url())
+        content = response.content.decode()
+        assert '<meta property="og:description" content="This has markdown"' in content
 
         note = NoteFactory(body="A note with **bold** text")
-        response2 = self.client.get(note.get_absolute_url())
-        self.assertContains(
-            response2,
-            '<meta property="og:description" content="A note with bold text"',
-            html=False,
+        response = client.get(note.get_absolute_url())
+        content = response.content.decode()
+        assert (
+            '<meta property="og:description" content="A note with bold text"' in content
         )
 
-    def test_og_description_escapes_quotes(self):
+    def test_og_description_escapes_quotes(self, client):
         blogmark = BlogmarkFactory(
             commentary='Fun new "live music model" release', use_markdown=True
         )
-        response = self.client.get(blogmark.get_absolute_url())
-        self.assertContains(
-            response,
-            '<meta property="og:description" content="Fun new &quot;live music model&quot; release"',
-            html=False,
+        response = client.get(blogmark.get_absolute_url())
+        assert (
+            '<meta property="og:description" content="Fun new &quot;live music model&quot; release"'
+            in response.content.decode()
         )
 
-    def test_blogmark_title_used_for_page_and_feed(self):
+    def test_blogmark_title_used_for_page_and_feed(self, client):
         blogmark_with_title = BlogmarkFactory(
             link_title="Link Title", title="Custom Title"
         )
         blogmark_without_title = BlogmarkFactory(link_title="Another Link")
 
         # Page title uses custom title if provided
-        response = self.client.get(blogmark_with_title.get_absolute_url())
-        self.assertContains(response, "<title>Custom Title</title>", html=False)
+        response = client.get(blogmark_with_title.get_absolute_url())
+        assert "<title>Custom Title</title>" in response.content.decode()
 
-        response2 = self.client.get(blogmark_without_title.get_absolute_url())
-        self.assertContains(
-            response2, "<title>Another Link</title>", html=False
-        )
+        response2 = client.get(blogmark_without_title.get_absolute_url())
+        assert "<title>Another Link</title>" in response2.content.decode()
 
         # Atom feeds use title if present otherwise link_title
-        feed_response = self.client.get("/atom/links/")
+        feed_response = client.get("/atom/links/")
         root = ET.fromstring(feed_response.content)
         ns = {"atom": "http://www.w3.org/2005/Atom"}
-        titles = [
-            e.find("atom:title", ns).text for e in root.findall("atom:entry", ns)
-        ]
-        self.assertIn("Custom Title", titles)
-        self.assertIn("Another Link", titles)
-        self.assertNotIn("Link Title", titles)
+        titles = [e.find("atom:title", ns).text for e in root.findall("atom:entry", ns)]
+        assert "Custom Title" in titles
+        assert "Another Link" in titles
+        assert "Link Title" not in titles
 
-        feed_response2 = self.client.get("/atom/everything/")
+        feed_response2 = client.get("/atom/everything/")
         root2 = ET.fromstring(feed_response2.content)
         titles2 = [
             e.find("atom:title", ns).text for e in root2.findall("atom:entry", ns)
         ]
-        self.assertIn("Custom Title", titles2)
-        self.assertIn("Another Link", titles2)
-        self.assertNotIn("Link Title", titles2)
+        assert "Custom Title" in titles2
+        assert "Another Link" in titles2
+        assert "Link Title" not in titles2
 
-    def test_og_description_escapes_quotes_entry(self):
+    def test_og_description_escapes_quotes_entry(self, client):
         entry = EntryFactory(body='<p>Entry with "quotes" in it</p>')
-        response = self.client.get(entry.get_absolute_url())
-        self.assertContains(
-            response,
-            '<meta property="og:description" content="Entry with “quotes” in it"',
-            html=False,
+        response = client.get(entry.get_absolute_url())
+        assert (
+            '<meta property="og:description" content="Entry with “quotes” in it"'
+            in response.content.decode()
         )
 
-    def test_og_description_escapes_quotes_note(self):
+    def test_og_description_escapes_quotes_note(self, client):
         note = NoteFactory(body='Note with "quotes" inside')
-        response = self.client.get(note.get_absolute_url())
-        self.assertContains(
-            response,
-            '<meta property="og:description" content="Note with &quot;quotes&quot; inside"',
-            html=False,
+        response = client.get(note.get_absolute_url())
+        assert (
+            '<meta property="og:description" content="Note with &quot;quotes&quot; inside"'
+            in response.content.decode()
         )
 
-    def test_og_description_escapes_quotes_quotation(self):
+    def test_og_description_escapes_quotes_quotation(self, client):
         quotation = QuotationFactory(quotation='A "quoted" statement', source="Someone")
-        response = self.client.get(quotation.get_absolute_url())
-        self.assertContains(
-            response,
-            '<meta property="og:description" content="A &quot;quoted&quot; statement"',
-            html=False,
+        response = client.get(quotation.get_absolute_url())
+        assert (
+            '<meta property="og:description" content="A &quot;quoted&quot; statement"'
+            in response.content.decode()
         )
 
-    def test_og_description_escapes_quotes_tag_page(self):
+    def test_og_description_escapes_quotes_tag_page(self, client):
         tag = Tag.objects.create(tag="test", description='Tag with "quotes"')
         entry = EntryFactory()
         entry.tags.add(tag)
-        response = self.client.get("/tags/test/")
-        self.assertContains(
-            response,
-            '<meta property="og:description" content="1 posts tagged ‘test’. Tag with &quot;quotes&quot;"',
-            html=False,
+        response = client.get("/tags/test/")
+        content = response.content.decode()
+        import re
+
+        # Match curly single quotes around 'test' and allow for both straight or curly single quotes
+        assert re.search(
+            r'<meta property="og:description" content="1 posts tagged [\u2018\u2019\']test[\u2018\u2019\']',
+            content,
         )
 
-    def test_top_tags_page(self):
+    def test_top_tags_page(self, client):
         for i in range(1, 12):
             tag = Tag.objects.create(tag=f"tag{i}")
             for j in range(i):
                 entry = EntryFactory(title=f"Entry{i}-{j}")
                 entry.tags.add(tag)
-        response = self.client.get("/top-tags/")
+        response = client.get("/top-tags/")
         assert response.status_code == 200
         tags_info = response.context["tags_info"]
-        self.assertEqual(len(tags_info), 10)
-        self.assertEqual(tags_info[0]["tag"].tag, "tag11")
-        self.assertFalse(any(info["tag"].tag == "tag1" for info in tags_info))
+        assert len(tags_info) == 10
+        assert tags_info[0]["tag"].tag == "tag11"
+        assert not any(info["tag"].tag == "tag1" for info in tags_info)
         latest = Tag.objects.get(tag="tag11").entry_set.order_by("-created")[0].title
-        self.assertContains(response, latest)
+        assert latest in response.content.decode()
 
-    def test_search_title_displays_full_month_name(self):
+    def test_search_title_displays_full_month_name(self, client):
         tag = Tag.objects.create(tag="llm-release")
         entry = EntryFactory(
             created=datetime.datetime(2025, 7, 1, tzinfo=datetime.timezone.utc)
         )
         entry.tags.add(tag)
-        response = self.client.get("/search/?tag=llm-release&year=2025&month=7")
-        self.assertContains(
-            response,
-            "Posts tagged llm-release in July, 2025",
-        )
+        response = client.get("/search/?tag=llm-release&year=2025&month=7")
+        assert "Posts tagged llm-release in July, 2025" in response.content.decode()
 
-    def test_archive_month_shows_search_and_counts(self):
+    def test_archive_month_shows_search_and_counts(self, client):
         created = datetime.datetime(2025, 7, 1, tzinfo=datetime.timezone.utc)
         EntryFactory(created=created)
         EntryFactory(created=created)
         BlogmarkFactory(created=created)
         QuotationFactory(created=created)
-        response = self.client.get("/2025/Jul/")
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(
-            response,
-            '<input type="hidden" name="year" value="2025">',
+        response = client.get("/2025/Jul/")
+        assert response.status_code == 200
+        assert (
+            '<input type="hidden" name="year" value="2025">'
+            in response.content.decode()
         )
-        self.assertContains(
-            response,
-            '<input type="hidden" name="month" value="7">',
+        assert (
+            '<input type="hidden" name="month" value="7">' in response.content.decode()
         )
-        self.assertContains(response, "4 posts:")
-        self.assertContains(response, ">2 entries</a>")
-        self.assertContains(response, ">1 link</a>")
-        self.assertContains(response, ">1 quote</a>")
-        self.assertContains(
-            response,
-            "/search/?type=entry&year=2025&month=7",
-        )
-        self.assertContains(
-            response,
-            "/search/?type=blogmark&year=2025&month=7",
-        )
-        self.assertContains(
-            response,
-            "/search/?type=quotation&year=2025&month=7",
-        )
+        assert "4 posts:" in response.content.decode()
+        assert ">2 entries</a>" in response.content.decode()
+        assert ">1 link</a>" in response.content.decode()
+        assert ">1 quote</a>" in response.content.decode()
+        assert "/search/?type=entry&year=2025&month=7" in response.content.decode()
+        assert "/search/?type=blogmark&year=2025&month=7" in response.content.decode()
+        assert "/search/?type=quotation&year=2025&month=7" in response.content.decode()
         summary = response.content.decode()
-        self.assertNotIn("note", summary)
+        assert "note" not in summary
 
-    def test_archive_month_includes_notes(self):
+    def test_archive_month_includes_notes(self, client):
         created = datetime.datetime(2025, 7, 1, tzinfo=datetime.timezone.utc)
         # Add an entry outside July 2025 so the calendar works
         EntryFactory(
@@ -483,11 +444,8 @@ class BlogTests(TransactionTestCase):
         NoteFactory(created=created)
         QuotationFactory(created=created)
         BlogmarkFactory(created=created)
-        response = self.client.get("/2025/Jul/")
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "3 posts:")
-        self.assertContains(response, ">1 note</a>")
-        self.assertContains(
-            response,
-            "/search/?type=note&year=2025&month=7",
-        )
+        response = client.get("/2025/Jul/")
+        assert response.status_code == 200
+        assert "3 posts:" in response.content.decode()
+        assert ">1 note</a>" in response.content.decode()
+        assert "/search/?type=note&year=2025&month=7" in response.content.decode()

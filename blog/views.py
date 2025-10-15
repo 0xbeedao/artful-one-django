@@ -642,6 +642,20 @@ def archive_series_atom(request, slug):
     return SeriesFeed(series)(request)
 
 
+def photo_tag_detail(request, slug):
+    """Display all photos tagged with the given photo tag."""
+    photo_tag = get_object_or_404(PhotoTag, slug=slug)
+    photos = Photo.objects.filter(photo_tags=photo_tag).order_by("-created")
+    return render(
+        request,
+        "photo_tag_detail.html",
+        {
+            "photo_tag": photo_tag,
+            "photos": photos,
+        },
+    )
+
+
 @never_cache
 @staff_member_required
 def write(request):

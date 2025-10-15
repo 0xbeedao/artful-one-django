@@ -1,0 +1,73 @@
+{% extends "site_detail_page.html" %}{% load humanize %}
+
+{% load pictures %}
+
+{% block title %}Photos tagged "{{ photo_tag.name }}" - Bruce Kroeze{% endblock %}
+
+{% block extrahead %}
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Photos tagged '{{ photo_tag.name }}' - Bruce Kroeze" />
+<meta property="og:description" content="{{ photos.count|intcomma }} photo{{ photos.count|pluralize }} tagged '{{ photo_tag.name }}'." />
+<meta property="og:site_name" content="Bruce Kroeze's Weblog" />
+{% endblock %}
+
+{% block primary %}
+<h2 class="archive-h2">{{ photos.count|intcomma }} photo{{ photos.count|pluralize }} tagged "{{ photo_tag.name }}"</h2>
+
+{% if photo_tag.description %}
+    <div class="tag-description">{{ photo_tag.description|linebreaks }}</div>
+{% endif %}
+
+{% if photos %}
+    <div class="ui stackable three column grid">
+        {% for photo in photos %}
+            <div class="column">
+                <div class="ui card">
+                    {% if photo.image %}
+                        <div class="image">
+                            {% picture photo.image picture_id=photo.html_id img_alt="{{ photo.title }}" img_loading="lazy" picture_class="ui fluid image" %}
+                        </div>
+                    {% endif %}
+                    <div class="content">
+                        {% if photo.title %}
+                            <div class="header">{{ photo.title }}</div>
+                        {% endif %}
+                        {% if photo.description %}
+                            <div class="description">
+                                {{ photo.description|truncatewords:20 }}
+                            </div>
+                        {% endif %}
+                        {% if photo.external_url %}
+                            <div class="meta">
+                                <a href="{{ photo.external_url }}" target="_blank" rel="noopener">
+                                    {% if photo.external_title %}{{ photo.external_title }}{% else %}View Original{% endif %}
+                                </a>
+                            </div>
+                        {% endif %}
+                        <div class="meta">
+                            <span class="date">{{ photo.created|date:"F j, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>No photos found with this tag.</p>
+{% endif %}
+{% endblock %}
+
+{% block secondary %}
+<div class="metabox">
+    <p><strong>Photo Tag</strong></p>
+    <p>{{ photo_tag.name }}</p>
+    
+    {% if photo_tag.description %}
+        <p><strong>Description</strong></p>
+        <p>{{ photo_tag.description|linebreaks }}</p>
+    {% endif %}
+    
+    <p><strong>Total Photos</strong></p>
+    <p>{{ photos.count|intcomma }} photo{{ photos.count|pluralize }}</p>
+</div>
+{% endblock %}

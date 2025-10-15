@@ -7,8 +7,6 @@ from django.utils.safestring import mark_safe
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db.models import JSONField, Count
-from django.contrib.postgres.search import SearchVectorField
-from django.contrib.postgres.indexes import GinIndex
 from django.utils.html import escape, strip_tags
 from pictures.models import PictureField
 from collections import Counter
@@ -193,7 +191,6 @@ class BaseModel(models.Model):
     tags = models.ManyToManyField(Tag, blank=True)
     slug = models.SlugField(max_length=64)
     metadata = JSONField(blank=True, default=dict)
-    search_document = SearchVectorField(null=True)
     import_ref = models.TextField(max_length=64, null=True, unique=True)
     card_image = models.CharField(max_length=128, null=True, blank=True)
     series = models.ForeignKey(Series, blank=True, null=True, on_delete=models.PROTECT)
@@ -219,7 +216,6 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
         ordering = ("-created",)
-        indexes = [GinIndex(fields=["search_document"])]
 
 
 class Entry(BaseModel):

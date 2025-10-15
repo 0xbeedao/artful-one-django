@@ -278,7 +278,9 @@ def find_current_tags(num=5):
     candidates = [p[0] for p in counter.most_common(30)]
     random.shuffle(candidates)
     tags = Tag.objects.in_bulk(candidates[:num], field_name="tag")
-    return [tags[tag] for tag in candidates[:num]]
+    tags = [tags[tag] for tag in candidates[:num]]
+    tags.sort(key=lambda x: x.tag)
+    return tags
 
 
 def archive_year(request, year):

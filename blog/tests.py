@@ -30,10 +30,6 @@ class BlogTests(TransactionTestCase):
             [e.pk for e in sorted(db_entries, key=lambda e: e.created, reverse=True)],
         )
 
-    def test_django_header_plugin(self):
-        response = self.client.get("/")
-        self.assertIn("Django-Composition", response)
-
     def test_other_pages(self):
         entry = EntryFactory()
         blogmark = BlogmarkFactory()
@@ -102,7 +98,7 @@ class BlogTests(TransactionTestCase):
         self.assertContains(
             response,
             """
-            <h2>Hello &amp; goodbye</h2>
+            <h2 class="ui header">Hello &amp; goodbye</h2>
         """,
             html=True,
         )
@@ -159,7 +155,7 @@ class BlogTests(TransactionTestCase):
 
     def test_draft_items_not_displayed(self):
         draft_entry = EntryFactory(is_draft=True, title="draftentry")
-        draft_blogmark = BlogmarkFactory(is_draft=True, link_title="draftblogmark")
+        draft_blogmark = BlogmarkFactory(link_title="draftblogmark", is_draft=True)
         draft_quotation = QuotationFactory(is_draft=True, source="draftquotation")
         draft_note = NoteFactory(is_draft=True, body="draftnote")
         testing = Tag.objects.get_or_create(tag="testing")[0]

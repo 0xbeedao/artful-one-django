@@ -4,7 +4,6 @@ import re
 import calendar
 from django.db import models, connection
 from django.db.models.functions import TruncYear, TruncMonth
-from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponse, Http404
 from django.shortcuts import render
@@ -69,9 +68,6 @@ def search(request, q=None, return_context=False):
 
     query = None
     rank_annotation = None
-    if search_q and connection.vendor == "postgresql":
-        query = SearchQuery(search_q, search_type="websearch")
-        rank_annotation = SearchRank(models.F("search_document"), query)
 
     selected_tags = request.GET.getlist("tag")
 
@@ -103,9 +99,6 @@ def search(request, q=None, return_context=False):
             qs = qs.filter(created__gte=from_date)
         if to_date:
             qs = qs.filter(created__lt=to_date)
-        if search_q and query:
-            qs = qs.filter(search_document=query)
-            qs = qs.annotate(rank=rank_annotation)
         for tag in selected_tags:
             qs = qs.filter(tags__tag=tag)
         for exclude_tag in excluded_tags:

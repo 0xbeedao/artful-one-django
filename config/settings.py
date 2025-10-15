@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django_sql_dashboard",
     "django.contrib.humanize",
     "django_hosts",
     "blog",
@@ -148,16 +147,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 DASHBOARD_ENABLE_FULL_EXPORT = True
 
-if "DATABASE_URL" in os.environ:
-    # Parse database configuration from $DATABASE_URL
-    DATABASES["default"] = dj_database_url.config()
-    DATABASES["dashboard"] = dj_database_url.config()
-    # DATABASES["dashboard"]["OPTIONS"] = {
-    #     "options": "-c default_transaction_read_only=on -c statement_timeout=3000"
-    # }
-
-if "DISABLE_AUTOCOMMIT" in os.environ:
-    DATABASES["default"]["AUTOCOMMIT"] = False
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

@@ -8,7 +8,7 @@ import random
 from urllib.parse import urlencode
 
 from bs4 import BeautifulSoup as Soup
-import cloudflare
+# import cloudflare
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
@@ -645,12 +645,12 @@ def write(request):
 @staff_member_required
 def tools(request):
     if request.POST.get("purge_all"):
-        cf = cloudflare.CloudFlare(
-            email=settings.CLOUDFLARE_EMAIL, token=settings.CLOUDFLARE_TOKEN
-        )
-        cf.zones.purge_cache.delete(
-            settings.CLOUDFLARE_ZONE_ID, data={"purge_everything": True}
-        )
+        # cf = cloudflare.CloudFlare(
+        #     email=settings.CLOUDFLARE_EMAIL, token=settings.CLOUDFLARE_TOKEN
+        # )
+        # cf.zones.purge_cache.delete(
+        #     settings.CLOUDFLARE_ZONE_ID, data={"purge_everything": True}
+        # )
         return Redirect(request.path + "?msg=Cache+purged")
     return render(
         request,

@@ -1,0 +1,17 @@
+{% extends "site_detail_page.html" %}
+{% load pictures %}
+
+{% block title %}{{ tag.name }} photos{% endblock %}
+
+{% block primary %}
+  <h1 class="ui header">{{ tag.name }}</h1>
+  <div class="ui doubling four column grid">
+    {% for photo in photos %}
+      <div class="column">
+        <a href="{{ photo.image.url }}">
+          {% picture photo.image --img class="ui image" alt=photo.title %}
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}

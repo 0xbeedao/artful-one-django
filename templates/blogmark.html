@@ -4,6 +4,7 @@
 {% load entry_tags %}
 
 {% block extrahead %}
+{% endblock %}
 
 {% block card_title %}{{ blogmark.title|default:blogmark.link_title|typography }}{% endblock %}
 {% block card_description %}{{ blogmark.body|striptags|truncatewords:30|force_escape }}{% endblock %}

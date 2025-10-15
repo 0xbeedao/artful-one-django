@@ -7,6 +7,7 @@ from datetime import timezone
 class BaseFactory(factory.django.DjangoModelFactory):
     slug = factory.Sequence(lambda n: "slug%d" % n)
     created = factory.Faker("past_datetime", tzinfo=timezone.utc)
+    is_draft = False
 
 
 class EntryFactory(BaseFactory):

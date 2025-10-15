@@ -7,7 +7,6 @@ from django.http import (
 )
 from django.views.decorators.cache import never_cache
 from django.conf import settings
-import django_sql_dashboard
 import djp
 from blog import views as blog_views
 from blog import search as search_views
@@ -148,6 +147,7 @@ urlpatterns = [
     re_path(r"^tags/(.*?)/$", blog_views.archive_tag),
     re_path(r"^tags/(.*?).atom$", blog_views.archive_tag_atom),
     re_path(r"^tag/([a-zA-Z0-9_-]+)/$", tag_redirect),
+    re_path(r"^photo-tags/(?P<slug>[\w-]+)/$", blog_views.photo_tag_detail),
     re_path(r"^series/$", blog_views.series_index),
     re_path(r"^series/(.*?)/$", blog_views.archive_series),
     re_path(r"^series/(.*?).atom$", blog_views.archive_series_atom),
@@ -164,7 +164,6 @@ urlpatterns = [
     path("api/add-tag/", blog_views.api_add_tag, name="api_add_tag"),
     re_path(r"^admin/", admin.site.urls),
     # re_path(r"^static/", static_redirect),
-    path("dashboard/", include(django_sql_dashboard.urls)),
     path("user-from-cookies/", blog_views.user_from_cookies),
     path("tags-autocomplete/", tag_views.tags_autocomplete),
 ]

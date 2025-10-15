@@ -428,6 +428,9 @@ class PhotoTag(models.Model):
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return "/photo-tags/%s/" % self.slug
+
 
 class Photo(models.Model):
     created = models.DateTimeField(default=timezone.now)

@@ -3,6 +3,7 @@
 {% block body_class %}class="pushable"{% endblock %}
 
 {% block body %}
+{% load blog_tags %}
 <!-- following menu -->
 <div class="ui large top fixed hidden menu transition">
     <div class="ui container">
@@ -41,8 +42,8 @@
                     </form>
                 </div>
             </div>
-            {% if current_tags %}<p id="currenttags">On {% for tag in current_tags %}<a href="/tags/{{ tag }}/" class="item-tag">{{ tag }} <span>{{ tag.total_count }}</span></a> {% endfor %}<a href="/tags/" class="more">...</a></p>{% else %}<a href="/tags/">Tags...</a>{% endif %}
-            
+            {% if current_tags %}<p id="currenttags">Entries tagged: {% tag_list current_tags %}</p>{% endif %}
+            {% if photo_tags %}<p id="currenttags">Photos tagged: {% phototag_list photo_tags %}</p>{% endif %}
         </div>
     </div>
     <div id="primary" class="ui container">

@@ -1,42 +1,44 @@
 # coding=utf8
-from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
+from collections import Counter
+import datetime
+import hashlib
+import hmac
+import os
+import random
+from urllib.parse import urlencode
+
+from bs4 import BeautifulSoup as Soup
+import cloudflare
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
-from django.views.decorators.http import require_POST
-from django.views.decorators.cache import never_cache
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db import models
 from django.db.models import CharField, Value
-from django.conf import settings
-from django.core.paginator import (
-    Paginator,
-    EmptyPage,
-    PageNotAnInteger,
-)
-from django.http import Http404, HttpResponsePermanentRedirect as Redirect, HttpResponse
+from django.http import JsonResponse
+from django.http import Http404, HttpResponse, HttpResponsePermanentRedirect as Redirect
+from django.shortcuts import get_object_or_404, render
 from django.test import Client
 from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST
+import logging
+import pytz
+import requests
+
 from .models import (
     Blogmark,
     Entry,
-    Quotation,
     Note,
     Photo,
+    PhotoTag,
     Photoset,
+    PreviousTagName,
+    Quotation,
     Series,
     Tag,
-    PreviousTagName,
 )
-import hashlib
-import hmac
-from urllib.parse import urlencode
-import requests
-from bs4 import BeautifulSoup as Soup
-import datetime
-import random
-from collections import Counter
-import cloudflare
-import os
-import pytz
+
+log = logging.getLogger(__name__)
 
 MONTHS_3_REV = {
     "jan": 1,
@@ -185,6 +187,9 @@ def index(request):
     else:
         site_photoset = None
 
+    photo_tags = PhotoTag.objects.all().order_by("name")
+    log.info(f"Photo tags: {photo_tags}")
+
     response = render(
         request,
         "homepage.html",
@@ -195,6 +200,7 @@ def index(request):
             .prefetch_related("tags")[0:40],
             "current_tags": find_current_tags(5),
             "site_photoset": site_photoset,
+            "photo_tags": photo_tags,
         },
     )
     response["Cache-Control"] = "s-maxage=200"

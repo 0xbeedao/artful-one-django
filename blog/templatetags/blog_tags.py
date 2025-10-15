@@ -49,6 +49,16 @@ def comments_list_with_headers(context, comments):
     return context
 
 
+@register.inclusion_tag("includes/phototag_list.html")
+def phototag_list(tags):
+    return {"tags": tags}
+
+
+@register.inclusion_tag("includes/tag_list.html")
+def tag_list(tags):
+    return {"tags": tags}
+
+
 @register.simple_tag(takes_context=True)
 def page_href(context, page):
     query_dict = context["request"].GET.copy()

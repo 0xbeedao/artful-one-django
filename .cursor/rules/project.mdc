@@ -20,3 +20,7 @@ alwaysApply: true
 - Use type hints where possible in Python code
 - Prefer built-in Django utilities where possible
 - Use standard Django file paths
+
+## Terminal usage
+
+When testing on a Windows machine, use Git Bash instead of Powershell. `C:\Program Files\Git\usr\bin\bash.exe`
